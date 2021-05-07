@@ -42,7 +42,7 @@ void IEC104_SLAVE::read(byte *type, int *ca, long *ioa, long *value)
   for(int i=0; i<MAX_SRV_CLIENTS; i++) connection[i].read(&*type, &*ca, &*ioa, &*value);
 }
 
-//Imposto i parametri settabili (END OF INITIALIZATION, ecc)
+// I set the settable parameters (END OF INITIALIZATION, etc.)
 void IEC104_SLAVE::setParam(byte param, bool active)
 {
   bitWrite(parameters,param,active);
@@ -58,7 +58,7 @@ int IEC104_SLAVE::available()
   }
 
   bool newClient = false;
-  #ifdef IECWIRED //Ethernet cablata
+  #ifdef IECWIRED //Ethernet cable
   if (iecServer->available())
   {
     bool existingClient = false;
@@ -75,7 +75,7 @@ int IEC104_SLAVE::available()
   }
   #endif
 
-  if(newClient) //Se il client non è già registrato
+  if(newClient) //If the client is not already registered
   { 
     bool full = true;
     for (byte i = 0; i < MAX_SRV_CLIENTS; i++) 
@@ -94,7 +94,7 @@ int IEC104_SLAVE::available()
         break;
       }
     }
-    if(full) iecServer->available().stop(); //Non ho trovato slot liberi
+    if(full) iecServer->available().stop(); //I couldn't find any free slots
   }
 
   //Check clients for data
@@ -103,14 +103,14 @@ int IEC104_SLAVE::available()
   {
     if (iecMaster[i] && iecMaster[i].connected())
     {
-      risultato += connection[i].check(&iecMaster[i]); //Ricevo il numero di messaggi disponibili dal client
+      risultato += connection[i].check(&iecMaster[i]); //I get the number of messages available from the client
     }
-    else if (iecMaster[i]) iecMaster[i].stop(); //Elimino il client disconnesso
+    else if (iecMaster[i]) iecMaster[i].stop(); //I delete the disconnected client
   }
   return risultato;
 }
 
-void IEC104_SLAVE::send(byte type, byte num, int ca, long* IOA, long* val) //Invio le misure verso il client (master)
+void IEC104_SLAVE::send(byte type, byte num, int ca, long* IOA, long* val) //Sending the measurements to the client (master)
 {
   for(int i=0; i<MAX_SRV_CLIENTS; i++)
   {
@@ -133,14 +133,14 @@ void IEC104_HELPER::send(byte type, byte num, int ca, long* IOA, long* val)
     int msgLength = 12 + (num * (3 + dim));
     int byteCount = 12;
     byte bufferOut[msgLength];
-    bufferOut[0] = 0x68; //Iniziatore
-    bufferOut[1] = 10 + (num * (3 + dim)); //Lunghezza
+    bufferOut[0] = 0x68; //Initiator
+    bufferOut[1] = 10 + (num * (3 + dim)); //Length
     bufferOut[2] = (byte)(sequenceTx << 1);
     bufferOut[3] = (byte)(sequenceTx >> 7);
     bufferOut[4] = (byte)(sequenceRx << 1);
     bufferOut[5] = (byte)(sequenceRx >> 7);
     bufferOut[6] = type; //Type
-    bufferOut[7] = num; //Numero di misure
+    bufferOut[7] = num; //Number of measures
     bufferOut[8] = 0x03; //Cause of Transmission
     bufferOut[9] = 0x00;
     bufferOut[10] = (byte)(ca); //Address
@@ -153,7 +153,7 @@ void IEC104_HELPER::send(byte type, byte num, int ca, long* IOA, long* val)
       byteCount = byteCount + 3;
       for (int j = 0; j < dim; j++)
       {
-        bufferOut[byteCount] = (byte)(val[x] >> (8 * j)); //Valore
+        bufferOut[byteCount] = (byte)(val[x] >> (8 * j)); //Value
         byteCount++;
       }
     }
@@ -167,12 +167,12 @@ int IEC104_HELPER::check(Client *client)
   int risultato=0;
   if (client->available())
   {
-    if (client->read() == 0x68) //Iniziatore di stringa
+    if (client->read() == 0x68) //String initiator
     {
       byte lung = client->read();
       byte bufferIn[64];
       for (int x = 0; x < lung; x++) bufferIn[x] = client->read();
-      risultato = elaboraBuffer(bufferIn,lung,client); //Analizzo i dati appena ricevuti
+      risultato = elaboraBuffer(bufferIn,lung,client); //I analyze the data just received
     }
   }
   return risultato;
@@ -182,11 +182,11 @@ int IEC104_HELPER::elaboraBuffer(byte* bufferIn, byte lunghezza, Client *client)
 {
   if (!bitRead(bufferIn[0], 0)) //I-FORMAT
   {
-    sequenceRx++; //Incremento il contatore dei messaggi ricevuti
+    sequenceRx++; //Increase the counter of messages received
     byte type = bufferIn[4];
     int ca = (int)bufferIn[8] | bufferIn[9] << 8;
     byte count = 0;
-    for (int i = 0; i < 7; i++) bitWrite(count, i, bitRead(bufferIn[5], i)); //Numero di IOA in stringa (primi 7 bit)
+    for (int i = 0; i < 7; i++) bitWrite(count, i, bitRead(bufferIn[5], i)); //Number of IOAs in string (first 7 bits)
     bool SQ = bitRead(bufferIn[5], 7);
     byte cot = 0;
     for (int i = 0; i < 6; i++) bitWrite(cot, i, bitRead(bufferIn[6], i)); //Cause Of Transmission - Primi 6 bit
@@ -241,7 +241,7 @@ int IEC104_HELPER::elaboraBuffer(byte* bufferIn, byte lunghezza, Client *client)
     }
     else
     {
-      Serial.print("Type sconosciuto: ");
+      Serial.print("Type unknown: ");
       Serial.println(type);
       inviaS(); //S-FORMAT
     }
@@ -260,10 +260,10 @@ int IEC104_HELPER::elaboraBuffer(byte* bufferIn, byte lunghezza, Client *client)
       inviaU(0x23);
       dataTransfer=false;
     }
-    else if (bitRead(bufferIn[0], 6)) inviaU(0x83); //Rispondo al TEST
-    else if (bufferIn[0] == 0x0B) {} //Risposta dal server START_DT
-    else if (bufferIn[0] == 0x23) {} //Risposta dal server STOP_DT
-    else if (bufferIn[0] == 0x83) {} //Risposta dal server TEST
+    else if (bitRead(bufferIn[0], 6)) inviaU(0x83); //I answer the TEST
+    else if (bufferIn[0] == 0x0B) {} //Response from the START_DT server
+    else if (bufferIn[0] == 0x23) {} //Response from STOP_DT server
+    else if (bufferIn[0] == 0x83) {} //Response from the TEST server
   }
   return bufferCount;
 }
@@ -283,7 +283,7 @@ void IEC104_HELPER::read(byte *type, int *ca, long *ioa, long *value)
     *ca=bufferTag[bufferCount-1][1];
     *ioa=bufferTag[bufferCount-1][2];
     *value=bufferTag[bufferCount-1][3];
-    bufferCount--; //Ho svuotato un blocco del buffer
+    bufferCount--; //I have emptied a block of the buffer
   }
 }
 
@@ -297,27 +297,27 @@ void IEC104_HELPER::invia(byte type)
 
 void IEC104_HELPER::inviaBuf(byte* bufferOut, byte lung)
 {
-  client0->write(0x68); //Iniziatore di stringa
-  client0->write(lung); //Lunghezza stringa (minimo 4)
+  client0->write(0x68); //String initiator
+  client0->write(lung); //String length (minimum 4)
   for (int i = 0; i < lung; i++) client0->write(bufferOut[i]);
 }
 
-//Invia il U-Format
+//Submit the U-Format
 void IEC104_HELPER::inviaU(byte msg)
 {
   byte buf[4];
-  buf[0] = msg; //I primi due BIT (alti) indicano l' U-Format
+  buf[0] = msg; //The first two (high) BITs indicate the U-Format
   buf[1] = 0x00;
   buf[2] = 0x00;
   buf[3] = 0x00;
   inviaBuf(buf, 4);
 }
 
-//Invia il S-Format (conferma messaggio)
+//Send the S-Format (confirm message)
 void IEC104_HELPER::inviaS()
 {
   byte buf[4];
-  buf[0] = 0x01; //Il primo BIT indica l' S-Format
+  buf[0] = 0x01; //The first BIT indicates the S-Format
   buf[1] = 0x00;
   buf[2] = (byte)(sequenceRx << 1);
   buf[3] = (byte)(sequenceRx >> 7);
@@ -328,13 +328,13 @@ void IEC104_HELPER::inviaI(byte* bufferOut)
 {
   int dim = sizeof(bufferOut);
   byte buf[dim + 4];
-  buf[0] = (byte)(sequenceTx << 1) | 1; //Il primo BIT indica l' S-Format
+  buf[0] = (byte)(sequenceTx << 1) | 1; //The first BIT indicates the S-Format
   buf[1] = (byte)(sequenceTx >> 7);
   buf[2] = (byte)(sequenceRx << 1);
   buf[3] = (byte)(sequenceRx >> 7);
   for (int a = 0; a < dim; a++) buf[a + 4] = bufferOut[a];
   inviaBuf(buf, dim + 4);
-  sequenceTx++; //Incremento il contatore dei messaggi inviati
+  sequenceTx++; //I increase the counter of sent messages
 }
 
 
@@ -343,8 +343,8 @@ IEC104_MASTER::IEC104_MASTER(IPAddress host, int port, bool wired)
 {
   serverIP = host;
   serverPort = port;
-  if(wired) iecSlave = new(EthernetClient); //Connessione cablata
-  else iecSlave = new(WiFiClient); //Connessione WiFi
+  if(wired) iecSlave = new(EthernetClient); //Wired connection
+  else iecSlave = new(WiFiClient); //Wifi connection
 }
 
 IEC104_MASTER::~IEC104_MASTER()
@@ -368,8 +368,8 @@ int IEC104_MASTER::available()
   {
     iecSlave->stop();
     iecSlave->connect(serverIP, serverPort);
-    timeout0 = millis() + IEC_T0; //Timeout connessione
-    timeout1 = millis() + IEC_T1; //Timeout risposta
+    timeout0 = millis() + IEC_T0; //Connection timeout
+    timeout1 = millis() + IEC_T1; //Response timeout
     timeout2 = millis() + IEC_T2; //Timeout boh?
     timeout3 = millis() + IEC_T3; //Timeout boh?
     connection.setClient(&*iecSlave);
@@ -378,13 +378,13 @@ int IEC104_MASTER::available()
   else if (timeout1 < millis())
   {
     iecSlave->stop();
-    //error = 2; //Timeout 0 (mancata connessione)
-    error = 2; //Timeout 1 (mancata risposta)
+    //error = 2; //Timeout 0 (connection failure)
+    error = 2; //Timeout 1 (no answer)
     return -1;
   }
   else
   {
-    if (avvio) //Invio questi comandi al primo avvio
+    if (avvio) //I send these commands on first boot
     {
       if(bitRead(parameters,0)) connection.invia(0x46); //End of initialization
       connection.inviaU(0x07); // Start_DT
@@ -392,28 +392,28 @@ int IEC104_MASTER::available()
       delay(100);
       avvio = false;
     }
-    if (iecSlave->available() > 0) //Se c'è qualcosa in arrivo
+    if (iecSlave->available() > 0) //If there is something coming
     {
       delay(100);
-      if (iecSlave->read() == 0x68) //Iniziatore di stringa
+      if (iecSlave->read() == 0x68) //String initiator
       {
         testSent = false;
-        if (IEC_T1 < 5000) IEC_T1 = 5000; //T1 non può avere valore inferiore a 5"
+        if (IEC_T1 < 5000) IEC_T1 = 5000; //T1 cannot have a value less than 5 "
         timeTest = millis() + IEC_T_TEST;
-        timeout1 = millis() + IEC_T1; //Finché ricevo dati resetto il timeout 1
-        byte lung = iecSlave->read(); //Leggo la lunghezza della stringa
-        if (lung <= 253) //Lo standard richiede una lunghezza massima di 253 bytes
+        timeout1 = millis() + IEC_T1; //As long as I receive data I reset the timeout 1
+        byte lung = iecSlave->read(); //I read the length of the string
+        if (lung <= 253) //The standard requires a maximum length of 253 bytes
         {
-          byte bufferIn[lung]; //Creo il buffer per la lettura
-          for (int i = 0; i < lung; i++) bufferIn[i] = iecSlave->read(); //Leggo i restanti bytes
-          result = connection.elaboraBuffer(bufferIn, lung, iecSlave); //Analizzo i dati appena ricevuti
+          byte bufferIn[lung]; //I create the buffer for reading
+          for (int i = 0; i < lung; i++) bufferIn[i] = iecSlave->read(); //I read the remaining bytes
+          result = connection.elaboraBuffer(bufferIn, lung, iecSlave); //I analyze the data just received
         }
-        else Serial.println("ERRORE, lunghezza APDU oltre il limite");
+        else Serial.println("ERROR, APDU length over limit");
       }
     }
     else if (timeTest < millis() && !testSent)
     {
-      connection.inviaU(0x43); //Invio il TEST
+      connection.inviaU(0x43); //Sending the TEST
       testSent = true;
     }
   }
