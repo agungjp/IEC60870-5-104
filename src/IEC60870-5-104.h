@@ -113,7 +113,7 @@
 #define WIFI 0
 #define WIRED 1
 
-//Librerie
+//Library
 #include <Ethernet.h>
 #include <WiFi.h>
 
@@ -124,10 +124,10 @@ class IEC104_HELPER
     int sequenceRx=0;
     int sequenceTx=0;
     Client *client0;
-    int IEC_T0 = 30000; //Timeout connessione
-    int IEC_T1 = 15000; //Timeout risposta
-    int IEC_T2 = 10000; //Non utilizzato ancora
-    int IEC_T3 = 20000; //Non utilizzato ancora
+    int IEC_T0 = 30000; //Timeout connection
+    int IEC_T1 = 15000; //Timeout answer
+    int IEC_T2 = 10000; //Not used yet
+    int IEC_T3 = 20000; //Not used yet
     unsigned long timeout0=0;
     unsigned long timeout1=0;
     unsigned long timeout2=0;
@@ -142,7 +142,7 @@ class IEC104_HELPER
     void inviaS();
     void inviaI(byte* bufferOut);
     void invia(byte type);
-    void send(byte type, byte num, int ca, long* IOA, long* val); //Invio le misure verso il client (master)
+    void send(byte type, byte num, int ca, long* IOA, long* val); //Sending the measurements to the client (master)
     void setClient(Client *cli);
     void read(byte *type, int *ca, long *ioa, long *value);
     int elaboraBuffer(byte* bufferIn, byte lunghezza, Client *client);
@@ -154,11 +154,11 @@ class IEC104_MASTER
  private:
   IPAddress serverIP;
   int serverPort;
-  int IEC_T0 = 30000; //Timeout connessione
-  int IEC_T1 = 15000; //Timeout risposta
-  int IEC_T2 = 10000; //Non utilizzato ancora
-  int IEC_T3 = 20000; //Non utilizzato ancora
-  int IEC_T_TEST = 10000; //Non utilizzato ancora
+  int IEC_T0 = 30000; //Connection timeout
+  int IEC_T1 = 15000; //Response timeout
+  int IEC_T2 = 10000; //Not used yet
+  int IEC_T3 = 20000; //Not used yet
+  int IEC_T_TEST = 10000; //Not used yet
   unsigned long timeout0=0;
   unsigned long timeout1=0;
   unsigned long timeout2=0;
@@ -167,8 +167,8 @@ class IEC104_MASTER
   byte error = 0;
   bool avvio=false;
   bool testSent=false;
-  Client *iecSlave; //Connessione MASTER in uscita (mi connetto ad uno SLAVE)
-  IEC104_HELPER connection; //Istanza della gestione telegrammi IEC60870-5-104
+  Client *iecSlave; //Outgoing MASTER connection (I connect to a SLAVE)
+  IEC104_HELPER connection; //Instance of the IEC60870-5-104 telegram management
   byte parameters=0; //Settable parameters
   
  public:
@@ -183,14 +183,14 @@ class IEC104_MASTER
 class IEC104_SLAVE
 {  
   private:
-    #define MAX_SRV_CLIENTS 4 //Numero massimo di CLIENT/MASTER IEC60870-5-104 connessi
+    #define MAX_SRV_CLIENTS 4 //Maximum number of IEC60870-5-104 CLIENT / MASTER connected
 
-    //Parametri IEC 104
+    //Parametri ac 104
     uint16_t serverPort = 2404;
-    const int IEC_T0 = 30000; //Timeout connessione
-    const int IEC_T1 = 15000; //Timeout risposta
-    //const int T2 = 10000; //Non utilizzato ancora
-    //const int T3 = 20000; //Non utilizzato ancora
+    const int IEC_T0 = 30000; //Connection timeout
+    const int IEC_T1 = 15000; //Response timeout
+    //const int T2 = 10000; //Not used yet
+    //const int T3 = 20000; //Not used yet
     int sequence = 0;
     int sequenceRx = 0;
     unsigned long timeout0=0;
@@ -202,10 +202,10 @@ class IEC104_SLAVE
     bool avvio=false;
     byte parameters=0; //Settable parameters
 #ifdef IECWIRED
-    EthernetClient iecMaster[MAX_SRV_CLIENTS]; //Connessione MASTER in ingresso (gli SLAVE si connettono a me)
+    EthernetClient iecMaster[MAX_SRV_CLIENTS]; //MASTER input connection (the SLAVES connect to me)
     EthernetServer *iecServer;
 #else
-    WiFiClient iecMaster[MAX_SRV_CLIENTS]; //Connessione MASTER in ingresso (gli SLAVE si connettono a me)
+    WiFiClient iecMaster[MAX_SRV_CLIENTS]; //MASTER input connection (the SLAVES connect to me)
     WiFiServer *iecServer;
 #endif
 
@@ -219,7 +219,7 @@ class IEC104_SLAVE
     void read(byte *type, int *ca, long *ioa, long *value);
     int available();
     void setParam(byte param, bool active);
-    void send(byte type, byte num, int ca, long* IOA, long* val); //Invio le misure verso il client (master)
+    void send(byte type, byte num, int ca, long* IOA, long* val); //Sending the measurements to the client (master)
 
 }; //IEC104_SLAVE
 
