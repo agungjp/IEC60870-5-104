@@ -51,7 +51,7 @@ void loop()
 
   //---------------------------------------------------------------SENDING A SP or ME MEASUREMENT---------------------------------------------------------------//
 
-    //Scelgo il mio Common Address
+    //I choose my Common Address
     int ca = 50;
 
     //I create four variables to send, two Boolean (Single Point), and two analog (Normalized Measure)
